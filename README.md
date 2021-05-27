@@ -1,4 +1,4 @@
-# Voice-Converter
+# Voice Converter
 > Module for freely modifying or controlling voice
 
 
