@@ -223,21 +223,106 @@ for i in range(len(onsets[:-1])):
 
 
 
-### 4. 음성 데이터 재합성하기 - 1
+### 4. 음성 데이터 재합성하기 1
+
+앞선 일련의 예제를 통해서 우리는 주어진 음성으로 부터 여러 feature를 '추출' 하는 방법을 익혔다. 하지만 우리의 최종 목표는 변형된 음성을 '생성'해내는 모듈을 디자인하는 것이다.
+
+일반적으로 목소리를 변형시키는 과정은 아래와 같이 생각해볼 수 있다.
+
+`음성` → `(1)feature 추출` → `(2)feature 변형` → `(3)feature 재합성` → `변형된 음성`
+
+현재까지 우리는 (1)에 해당하는 과정을 진행했으며, 성공적인 모듈 디자인을 위해서는 (2)와 (3)에 대해서 파악해야 한다.
+
+`(1)feature 추출`과 `(3)feature 재합성`이 가능하기 위해서는 추출 연산의 역과정이 정의될 수 있어야 한다. 대표적으로 Short time fourier transform은 Inverse short time fourier transform을 정의할 수 있는 변형이기 때문에 reconstruction이 가능하다.
+
+~~~python
+audio, sr = librosa.load('speech.wav', sr=None)
+spectrogram = librosa.core.stft(audio)
+ 
+audio_recon = librosa.istft(spectrogram, hop_length=512)
+
+sf.write('speech_recon.wav', audio_recon, sr)
+~~~
+
+위와 같이 주어진 음원에서 Spectrogram을 추출하고, 해당 Spectrogram을 통해 다시 복원된 wave를 생성하여 저장할 수 있다.
+
+
 
 
 
 ### 5. 음성 데이터 재합성하기 2
 
+Short time fourier transform으로 변형된 feature에는 우리가 원하는 feature 변형의 과정을 진행하기가 쉽지 않다. 예컨데 음정을 올리고 싶은 경우, 우리는 STFT feature에 어떠한 변환과정을 진행해야 하는지 판단하기 어렵다. 이런 한계점을 극복하기 위해서 우리는 pyworld vocoder를 활용할 수 있다.
+
+pyworld vocoder는 [world vocoder](https://pdfs.semanticscholar.org/560a/be3b4482335a93df309cb6a0185ccc3ebd8e.pdf?_ga=2.93225115.742467816.1601196298-72658375.1564975111)의 python 버전 구현체이며, 논문에 따르면 주어진 waveform을 세개의 feature (`Fundamental frequency`, `Spectral Envelope`, `Aperiodic parameter`)로 분리하는 세개의 알고리즘과, 이 세개의 feature를 다시 waveform으로 합성하는 synthesis 알고리즘으로 구성되어있다.
+
+따라서 우리는 이 **추출-재합성 알고리즘**을 사용하면, pitch 정보를 원하는대로 변형한 재합성이 가능하다.
+
+pyworld 라이브러리를 활용하여 주어진 음원에서 `f0`, `spectral envelope`, `aperiodic parameter`를 추출하여 그림을 그리고, 이를 재합성해서 reconstructed wave를 생성해보자.
+
+~~~python
+import pyworld as pw
+
+audio, sr = librosa.load('speech.wav', sr=None, dtype='float64')
+
+# raw pitch extractor
+_f0, t = pw.dio(audio, sr)
+# pitch refinement
+f0 = pw.stonemask(audio, _f0, t, sr)
+# extract smoothed spectrogram
+sp = pw.cheaptrick(audio, _f0, t, sr)
+# extract aperiodicity
+ap = pw.d4c(audio, f0, t, sr)
+
+y = pw.synthesize(f0, sp, ap, sr)
+sf.write('speech_recon_pyworld.wav', y, sr)
+
+plt.figure(figsize=(16,9))
+plt.subplot(4,1,1)
+plt.plot(audio)
+plt.xlim([0,len(audio)])
+plt.title('waveform')
+plt.subplot(4,1,2)
+librosa.display.specshow(np.log(sp.T+1e-5))
+plt.title('sp')
+plt.subplot(4,1,3)
+librosa.display.specshow(np.log(ap.T+1e-5))
+plt.title('ap')
+plt.subplot(4,1,4)
+plt.plot(f0)
+plt.xlim([0,len(f0)])
+plt.title('pitch')
+
+plt.tight_layout()
+plt.savefig('example4_output.png')
+plt.close()
+~~~
+
+추출-재합성 과정에서 힘든 부분이 있을 경우 [pyworld document](https://github.com/JeremyCCHsu/Python-Wrapper-for-World-Vocoder)를 참고하면 큰 도움이 된다.
+
+
+
 ### 6. pitch 제어하기 (높낮이)
+
+
+
+
 
 ### 7. pitch 제어하기 (감정)
 
+
+
 ### 8. 빠르기 제어하기
+
+
 
 ### 9. Noise 제어하기
 
+
+
 ### 10. Reverb 제어하기
+
+
 
 ### 11. 목소리 변환기 만들기
 

@@ -20,7 +20,7 @@ Transforming/controlling voice freely through **Voice-Transforming-Module**.
 - (Goal 3) **Speed(tempo), emotional conversion** with *pysox module*
 - (Goal 4) Applying **noise**, **reverb**
 
-By understanding various characteristic features of the voice and how to control them, it is a step that makes the process of preprocessing and augmentation easier in the future. The overall development was carried out at Google Colab.
+By understanding various characteristic features of the voice and how to control them, it is a step that makes the process of preprocessing and augmentation easier in the future. The overall development was carried out at *Google Colab.*
 
 
 
@@ -29,8 +29,8 @@ By understanding various characteristic features of the voice and how to control
 1. [Examining Voice Data](#1-examining-voice-data)
 2. [Analyzing Voice Data (rms, pitch)](#2-analyzing-voice-data-rms-pitch)
 3. [Analyzing Voice Data (timing)]( #3-analyzing-voice-data-timing)
-4. [Re-synthesizing Voice Data 1](#4-re-synthesizing-voice-data-1)
-5. [Re-synthesizing Voice Data 2](#5-re-synthesizing-voice-data-2)
+4. [Reconstruction 1](#4-reconstruction-1)
+5. [Reconstruction 2](#5-reconstruction-2)
 6. [Pitch Control (key change)]
 7. [Pitch Control (emotional)]
 8. [Speed Control]
@@ -48,7 +48,7 @@ By understanding various characteristic features of the voice and how to control
 
 > *"그는 괜찮은 척 하려고 애쓰는 것 같았다."*  It's a Korean sentence which is in [speech.wav](./speech.wav) file.
 
-음성은 사람이 발성기관을 통해 내는 소리를 의미한다. 넓은 의미의 음성에는 말소리, 노래와 같은 언어적 음성 뿐만 아니라 웃음소리, 기침 소리 같은 비언어적 음성이 포함된다. 언어적 음성, 그 중에서도 일반적인 대화에서 사용되는 음성을 중점적으로 살펴보자. 이번 콘텐츠에서 지속적으로 사용할 라이브러리를 정리하면 다음과 같다.
+**Voice** means the sound a person makes through the vocal organs. Voices include *verbal voices* such as speech and singing, as well as *nonverbal voices* such as laughter and coughing. Let's focus on verbal speech, especially the voice used in general conversations. The libraries that will be used continuously in this content are as follows.
 
 ~~~python
 import numpy as np  
@@ -59,18 +59,18 @@ import matplotlib.pyplot as plt
 import librosa.display
 ~~~
 
-나의 경우, Colab에서 음원을 들어보기 위해 아래와 같은 방법을 사용한다. 이후에도 간편하게 활용할 일이 매우 많았다.
+And In my case, I use the following method to listen to audio in Colab. There will be many situations where it will be used conveniently afterwards.
 
 ~~~python
 import IPython.display as ipd
 ipd.Audio('speech.wav')
 ~~~
 
-괄호 내부에 듣고자 하는 음원의 경로를 입력하면 output이 예쁘게 출력된다.
+If you enter the sound path you want to hear in the bracket, player will be output beautifully.
 
 
 
-먼저 Spectrogram() 함수를 선언한다.
+First, define the Spectrogram() function.
 
 ~~~python
 def Spectrogram(wav):
@@ -79,9 +79,10 @@ def Spectrogram(wav):
 		return stft
 ~~~
 
-이후 [**librosa**](https://librosa.org/doc/latest/index.html) library를 활용해 `speech.wav` 음원을 다운로드해 불러오고,  
 
-[**matplotlib**](https://matplotlib.org/) library를 이용해 waveform과 spectrogram을 그려본다.
+
+Then load the file [`speech.wav`](./speech.wav) using the [**librosa**](https://librosa.org/doc/latest/index.html) library  
+and draw the waveform, spectrogram of it using the [**matplotlib**](https://matplotlib.org/) library
 
 ~~~python
 audio, sr = librosa.load('speech.wav', sr=None)
@@ -108,23 +109,27 @@ plt.savefig('example1_output.png')
 
 ### 2. Analyzing Voice Data (rms, pitch)
 
-waveform은 시간에 따른 압력 정보를 표현한 그래프이므로, 어떤 시점에서 마이크로 얼만큼의 압력이 인가되었는지를 알려주고 있는 정보이다.
+**Waveform** is a graph of pressure information over time, indicating how much pressure was applied to the microphone at some point.
 
-spectrogram은 이러한 waveform에 Short-time Fourier transform(STFT)을 적용한 결과로, 작은 window로 제한된 시간에 따라 해당 순간에 각 주파수 성분이 얼만큼의 강도로 표현되어있는지를 시각화해서 확인할 수 있는 정보이다. 두 정보 모두 아주 자세한 정보를 포함하고 있는 셈이지만, 우리는 보다 직관적인 정보를 필요로 하는 경우가 있다.
+As a result of the Short-Time Fourier Transform (STFT) application to these waveforms, it is possible to visualize how strong each frequency component is represented at that moment, depending on the time limit of the small window. Both information contains very detailed information, but we sometimes need more intuitive information.
 
-이번엔 우리에게 조금 더 친숙한 개념인, **세기(rms)**와 **음정(pitch)** 정보를 음원으로부터 출력하는 과정을 진행한다.
 
-**세기(rms)**는 waveform 내부에서 특정 window 안에 있는 모든 압력 값들의 제곱 평균에 root 를 취한 값이다. 일반적으로 우리가 '큰 소리'를 녹음한다면 이 값은 커지는 경향이 있고, 반대로 작은 소리는 작은 경향이 있다. `librosa.feature.rms` 함수를 통해 계산이 가능하다.
 
-**음정(pitch)**은 발화에 포함되어있는 시간에 따른 음의 높낮이를 의미한다. 높은 음일수록 높은 주파수라고 생각하면 된다. `pyworld` 라이브러리를 통해 pitch sequence를 출력할 수 있다.
+This time, we will proceed with the process of outputting **rms** and **pitch** information, which are more familiar concepts to us.
 
-먼저 [**pyworld**](https://github.com/JeremyCCHsu/Python-Wrapper-for-World-Vocoder) library가 필요하다.
+**RMS (Strength)** is the value taken root from the square mean of all pressure values within a particular window inside the waveform. In general, this value tends to increase if we record a 'big sound', whereas a small sound tends to be small. It can be calculated through the `librosa.feature.rms` function.
+
+**Pitch** means the height of a sound over time that is included in the speech. The higher the pitch, the higher the frequency. Pitch sequence can be printed through the `pyworld` library.
+
+
+
+So we need [**pyworld**](https://github.com/JeremyCCHsu/Python-Wrapper-for-World-Vocoder) library.
 
 ~~~python
 !pip install pyworld
 ~~~
 
-pyworld를 설치한 후 코드는 다음과 같다.
+After installing pyworld, code is as follows.
 
  ~~~python
  import pyworld as pw 
@@ -224,13 +229,13 @@ for i in range(len(onsets[:-1])):
 
 
 
-### 4. Re-synthesizing Voice Data 1
+### 4. Reconstruction 1
 
 need to be updated
 
 
 
-### 5. Re-synthesizing Voice Data 2
+### 5. Reconstruction 2
 
 
 
