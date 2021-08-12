@@ -1,52 +1,51 @@
-# Voice Converter
-> Module for freely modifying or controlling voice  
-> [한국어/Korean](./README_KR.md)
+# 목소리 변환기
+> 음성을 자유롭게 수정하고 제어하는 모듈 [English/영어](./README.md)
 
 
 
-## Introduction
+## 개요
 
-> The source of this repository is [Contents](https://futureskill.io/content/aae67c6d-236e-4667-8b5e-e59668f0b562) in [FutureSkill](https://futureskill.io/).
+> 본 레포 학습내용의 출처는 [FutureSkill](https://futureskill.io/)의 [Contents](https://futureskill.io/content/aae67c6d-236e-4667-8b5e-e59668f0b562)입니다.
 
-Transforming/controlling voice freely through **Voice-Transforming-Module**.
+[목소리를 변형하는 모듈]을 통해 목소리를 자유 자재로 변형하거나 제어해보자.
 
 
 
-#### Goals
+#### 목표
 
-- <u>[Final] Creating a module that produces a voice with the desired variation on the input voice</u>
-- (Goal 1) Understanding and extracting elements of speech (size, speed)
-- (Goal 2) **Tone conversion** using *pyworld vocoder*
-- (Goal 3) **Speed(tempo), emotional conversion** with *pysox module*
-- (Goal 4) Applying **noise**, **reverb**
+- **[최종] 입력 음성에 원하는 변형을 가한 출력 음성 생성 모듈**
+- *(목표 1) 음성의 요소 이해 및 추출 (크기, 빠르기)*
+- *(목표 2) pyworld vocoder를 이용한 음정 변환*
+- *(목표 3) pysox 모듈을 이용한 빠르기, 감정 변환*
+- *(목표 4) noise, reverb 적용 연습*
 
-By understanding various characteristic features of the voice and how to control them, it is a step that makes the process of preprocessing and augmentation easier in the future. The overall development was carried out at Google Colab.
+음성의 여러가지 특징적인 feature들을 이해하고, 그것을 제어할 수 있도록 하는 방법을 이해함으로서 향후 음성 데이터 전처리, augmentation 등 과정을 보다 편하게 진행할 수 있도록 돕는 과정이다. 전체적인 개발은 Google Colab에서 진행했다.
 
 
 
 ## Contents
 
-1. [Examining Voice Data](#1-examining-voice-data)
-2. [Analyzing Voice Data (rms, pitch)](#2-analyzing-voice-data-rms-pitch)
-3. [Analyzing Voice Data (timing)]( #3-analyzing-voice-data-timing)
-4. [Re-synthesizing Voice Data 1](#4-re-synthesizing-voice-data-1)
-5. [Re-synthesizing Voice Data 2](#5-re-synthesizing-voice-data-2)
-6. [Pitch Control (key change)]
-7. [Pitch Control (emotional)]
-8. [Speed Control]
-9. [Noise Control]
-10. [Reverb Control]
-11. [Voice Converter]
+1. [음성 데이터 살펴보기](#1-음성-데이터-살펴보기)
+2. [음성 데이터 분석하기 (rms, pitch)](#2-음성-데이터-분석하기-rms-pitch)
+3. 음성 데이터 분석하기 (timing)
+4. 음성 데이터 재합성하기 1
+5. 음성 데이터 재합성하기 2
+6. pitch 제어하기 (높낮이)
+7. pitch 제어하기 (감정)
+8. 빠르기 제어하기
+9. Noise 제어하기
+10. Reverb 제어하기
+11. 목소리 변환기 만들기
 
 
 
 
 
-> Last Update: 2021.08.12.
+> Last Update: 2021.08.10.
 
-### 1. Examining Voice Data
+### 1. 음성 데이터 살펴보기
 
-> *"그는 괜찮은 척 하려고 애쓰는 것 같았다."*  It's a Korean sentence which is in [speech.wav](./speech.wav) file.
+> *"그는 괜찮은 척 하려고 애쓰는 것 같았다."*  [speech.wav](./speech.wav) 파일을 재생하면 나오는 음성이다.
 
 음성은 사람이 발성기관을 통해 내는 소리를 의미한다. 넓은 의미의 음성에는 말소리, 노래와 같은 언어적 음성 뿐만 아니라 웃음소리, 기침 소리 같은 비언어적 음성이 포함된다. 언어적 음성, 그 중에서도 일반적인 대화에서 사용되는 음성을 중점적으로 살펴보자. 이번 콘텐츠에서 지속적으로 사용할 라이브러리를 정리하면 다음과 같다.
 
@@ -106,7 +105,7 @@ plt.savefig('example1_output.png')
 
 
 
-### 2. Analyzing Voice Data (rms, pitch)
+### 2. 음성 데이터 분석하기 (rms, pitch)
 
 waveform은 시간에 따른 압력 정보를 표현한 그래프이므로, 어떤 시점에서 마이크로 얼만큼의 압력이 인가되었는지를 알려주고 있는 정보이다.
 
@@ -169,7 +168,7 @@ pyworld를 설치한 후 코드는 다음과 같다.
 
 
 
-### 3. Analyzing Voice Data (timing)
+### 3. 음성 데이터 분석하기 - timing
 
 앞선 예제를 통해서 우리는 주어진 음성에서 각 시간에 따른 파형, spectrogram, rms, pitch 정보를 출력하는 방법을 익혔다. 따라서 음원과 특정 시점이 주어지면, 해당 시점에서 여러가지 정보들을 파악할 수 있게 되었다.
 
@@ -224,49 +223,29 @@ for i in range(len(onsets[:-1])):
 
 
 
-### 4. Re-synthesizing Voice Data 1
-
-need to be updated
+### 4. 음성 데이터 재합성하기 - 1
 
 
 
-### 5. Re-synthesizing Voice Data 2
+### 5. 음성 데이터 재합성하기 2
 
+### 6. pitch 제어하기 (높낮이)
 
+### 7. pitch 제어하기 (감정)
 
+### 8. 빠르기 제어하기
 
+### 9. Noise 제어하기
 
-### 6. Pitch Control (key change)
+### 10. Reverb 제어하기
 
-
-
-
-
-### 7. Pitch Control (emotional)
+### 11. 목소리 변환기 만들기
 
 
 
 
 
-### 8. Speed Control
 
-
-
-
-
-### 9. Noise Control
-
-
-
-
-
-### 10. Reverb Control
-
-
-
-
-
-### 11. Voice Converter
 
 
 
