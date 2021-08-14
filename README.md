@@ -298,7 +298,7 @@ plt.savefig('example4_output.png')
 plt.close()
 ~~~
 
-![4_1](/Users/seobj/Desktop/DEV/voice-converter/outputs/example4_output.png)
+![4_1](./outputs/example4_output.png)
 
 추출-재합성 과정에서 힘든 부분이 있을 경우 [pyworld document](https://github.com/JeremyCCHsu/Python-Wrapper-for-World-Vocoder)를 참고하면 큰 도움이 된다.
 
