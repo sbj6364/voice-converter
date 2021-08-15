@@ -42,7 +42,7 @@ By understanding various characteristic features of the voice and how to control
 
 
 
-> Last Update: 2021.08.12.
+> Last Update: 2021.08.15.
 
 ### 1. Examining Voice Data
 
