@@ -178,7 +178,7 @@ After installing pyworld, code is as follows.
 
 Previously we learned how to output waveform, spectrum, rms, and pitch information over each time period from a given voice. Thus, given the sound source and specific time points, various information can be identified at that time.
 
-So how do we get the information about the **timing**? For example, the given sound source emits a string in Korean that says, **"그는 괜찮은척 하려고 애쓰는것 같았다."**, which is translated into English as **"He seemed to be trying to pretend to be okay."** How do we figure out when the syllables such as `He` or `seemed`  begin?
+So how do we get the information about the **timing**? For example, the given sound source emits a string in Korean that says, **"그는 괜찮은척 하려고 애쓰는것 같았다"**, which is translated into English as **"He seemed to be trying to pretend to be okay."** How do we figure out when the syllables such as `He` or `seemed`  begin?
 
 In fact, it is not easy to guess the information about the linguistic expression from speech, which is studied by various names and fields such as `Speech-to-text`, `Automatic Speech Recognition`, and `Speech-Text Alignment`. However, as one of the simplest approaches, we can experiment with determining when a new event appears in a given sequence.
 
@@ -252,13 +252,13 @@ As shown above, a Spectrogram can be extracted from a given sound source, and a 
 
 ### 5. Reconstruction2
 
-Short time fourier transform으로 변형된 feature에는 우리가 원하는 feature 변형의 과정을 진행하기가 쉽지 않다. 예컨데 음정을 올리고 싶은 경우, 우리는 STFT feature에 어떠한 변환과정을 진행해야 하는지 판단하기 어렵다. 이런 한계점을 극복하기 위해서 우리는 pyworld vocoder를 활용할 수 있다.
+It is not easy to proceed with the feature deformation process that we want with STFT. For example, if we want to raise the pitch, it is difficult for us to determine what kind of conversion process we should proceed with to STFT feature. To overcome these limitations, we use pyworld vocoder.
 
-pyworld vocoder는 [world vocoder](https://pdfs.semanticscholar.org/560a/be3b4482335a93df309cb6a0185ccc3ebd8e.pdf?_ga=2.93225115.742467816.1601196298-72658375.1564975111)의 python 버전 구현체이며, 논문에 따르면 주어진 waveform을 세개의 feature (`Fundamental frequency`, `Spectral Envelope`, `Aperiodic parameter`)로 분리하는 세개의 알고리즘과, 이 세개의 feature를 다시 waveform으로 합성하는 synthesis 알고리즘으로 구성되어있다.
+pyworld vocoder is a python version implementation of the  [world vocoder](https://pdfs.semanticscholar.org/560a/be3b4482335a93df309cb6a0185ccc3ebd8e.pdf?_ga=2.93225115.742467816.1601196298-72658375.1564975111). According to the paper, it consists of three algorithms that separate a given waveform into three features (`Fundamental frequency`, `Spectral Envelope`, `Aperiodic parameter`) and a synthis algorithm that reconstruct these three features back into waveform.
 
-따라서 우리는 이 **추출-재합성 알고리즘**을 사용하면, pitch 정보를 원하는대로 변형한 재합성이 가능하다.
+Thus, we can use this **extraction-reconstruction** algorithm to reconstruct pitch information as desired.
 
-pyworld 라이브러리를 활용하여 주어진 음원에서 `f0`, `spectral envelope`, `aperiodic parameter`를 추출하여 그림을 그리고, 이를 재합성해서 reconstructed wave를 생성해보자.
+Using the pyworld library, we can extract `f0`, `spectral envelope`, and `periodic parameter` from a given sound source and recreate them to create a reconstructed wave.
 
 ~~~python
 import pyworld as pw
