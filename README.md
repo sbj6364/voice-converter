@@ -300,13 +300,13 @@ plt.close()
 
 ![4_1](./outputs/example4_output.png)
 
-추출-재합성 과정에서 힘든 부분이 있을 경우 [pyworld document](https://github.com/JeremyCCHsu/Python-Wrapper-for-World-Vocoder)를 참고하면 큰 도움이 된다.
+If there are some difficulties, refer to [pyworld document](https://github.com/JeremyCCHsu/Python-Wrapper-for-World-Vocoder).
 
 
 
 ### 6. Pitch Control (key change)
 
-**Pitch**는 1초에 몇 번 진동하는지에 대한 Hz 단위로 표시가 가능하고, 우리가 음악에서 말하는 한 키, 한 옥타브 등의 단위로도 표현이 가능하다. 1 옥타브 높은 음은 원래 주파수의 2배의 주파수 값을 가지며, 한 옥타브는 12개의 음계로 이루어져 있다. 이를 활용하면 다음과 같은 코드를 작성할 수 있다.
+**Pitch** can be expressed in *Hz* units of how many times it vibrates per second, and can be expressed in units of one key, one octave, and so on in music. An octave high note has a frequency value of twice that of its original frequency, and an octave consists of 12 scales. Using this, the following code can be written:
 
 ~~~python
 def key_change(audio, key):
@@ -314,8 +314,9 @@ def key_change(audio, key):
     f0 = pw.stonemask(audio, _f0, t, sr) 
  
     f0 = f0 + (f0 * key / 12)
-    # 한 옥타브 차이는 주파수 두 배 차이이며, 옥타브는 12개의 음계로 이루어져있다.
-    # 따라서 기존 주파수 f0에, f0을 열두개로 나눈 음계를 'key'만큼 더해주면 된다.
+    # An octave high note has a frequency value of twice that of its original frequency
+		# and an octave consists of 12 scales.
+    # Therefore, add 'key' scales of f0 divided by 12 to the existing frequency f0.
  
     sp = pw.cheaptrick(audio, f0, t, sr) 
     ap = pw.d4c(audio, f0, t, sr)        
@@ -331,17 +332,17 @@ sf.write('speech_down2.wav', key_change(audio, -2), sr)
 sf.write('speech_down3.wav', key_change(audio, -3), sr)
 ~~~
 
-생성된 파일을 들어보면 음성이 마치 노래방에서 키를 올리고 내린 것처럼 조절된 것을 확인할 수 있다.
+By listening to the generated file, you can see that the voice is adjusted as if the key was raised and lowered in a karaoke room.
 
-이와 같이 우리는 pyworld vocoder를 통해 주어진 음원으로부터 pitch 정보를 제어할 수 있다. 즉 음원 `y`에서 `f0` 를 추출하고, 이를 원하는 대로 변형한 `f0'` 을 생성한 후, `f0'`, `sp`, `ap` 를 통해 `y'` 을 재합성해내는 과정을 진행할 수 있다.
+As such, we can control pitch information from a given music source through pyworld vocoder. It is possible to extract `f0` from the music `y`, generate `f0` that is modified as desired, and then reconstruct `y` through `f0`, `sp`, and `ap`.
 
 
 
 ### 7. Pitch Control (emotional)
 
-우리는 주어진 음원에서 전체적으로 음고를 높이거나 낮추는 방법에 대해 알아보았다. 더 나아가서 이를 활용하면 특정 영역에서만 높이고 낮추는 것도 가능할 것이다. 이러한 확장을 넘어서, 이번에는 pitch 전체의 분포를 변형시켜 보는 과정을 진행하고자 한다. 우리가 pyworld를 통해서 얻어낸 pitch들은 시간에 따라 값이 변화하는 sequential 한 데이터이며, 여러개의 데이터의 집합으로 이루어져 있다.
+Now we know how to raise or lower the pitch overall in a given sound source. Furthermore, it would be possible to raise and lower it only in certain areas by utilizing it. Beyond these extensions, this time we are going to try to transform the distribution of pitch as a whole. The pitches we obtain through pyworld are sequential data whose values change over time, and are composed of multiple sets of data.
 
-그렇다면 이 데이터에는 평균적인 pitch가 존재할 것이고, 이 평균으로부터 전체 데이터가 얼마나 멀리 떨어져있는지에 대한 분산 또한 존재할 것이다. 앞선 문제에서는 분산은 고정시킨 채, 평균 값을 변화시킴으로서 목소리의 높낮이를 조정했던 것이라고 이해할 수 있다. 그렇다면, 분산을 변화시켰을 때는 어떤 변화가 일어날까?
+Then there will be an average pitch in this data, and there will also be variances in how far the entire data is from this mean. In the previous problem, it can be understood that the variance was fixed and the pitch of the voice was adjusted by changing the mean value. So, what will happen when you change the variance?
 
 ~~~python
 def std_change(audio, alpha):
@@ -364,19 +365,19 @@ sf.write('speech_up_std.wav', std_change(audio, 2.0), sr)
 sf.write('speech_down_std.wav', std_change(audio, 0.5), sr)
 ~~~
 
-간단하게 생각해본다면, 분산이 더 커지는 경우 데이터 간 변화가 더욱 커지게 되므로 조금 더 활기찬, 혹은 흥분된 목소리로, 분산이 더 작아질 경우에는 밋밋하고 변화가 없는 단조로운 목소리로 만들 수 있을 것이다.
+Simply put, if the variance is greater, the change between the data will be greater, so it can be made into a more vibrant or excited voice, and if the variance is smaller, a dull, unchanging, monotonous voice.
 
 
 
 ### 8. Speed Control
 
-앞선 예제들을 통해서 주어진 오디오로부터 추출된 음고 정보를 변형한 새로운 목소리를 생성하는 것에 대해 알아보았다. 이번엔 새로운 library인 `sox`를 활용하여 음고 뿐만 아니라 빠르기, 세기 등 다양한 변환을 sequential 하게 처리하는 모듈을 디자인해보고자 한다.
+Through previous examples, we looked at generating new voices that transformed the phonetic information extracted from a given audio. This time, we are going to design a module that uses `sox`, a new library, to sequentially process various conversions such as speed, intensity, and etc. as well as pitch.
 
-옛날에 카세트 테이프를 '빨리 감기' 해서 들어본 적이 있을 것이다. 일반적으로 동영상을 배속 재생해도 그렇다. 남자 목소리가 빨라진 속도만큼 얇아져서 마치 여자 목소리처럼 들리는 경우가 있다. 이는 속도가 변하면서 음정이 함께 변한 것이다.  ~~이승철 노래를 0.8배속 정도로 들으면 박명수 목소리가 나더라~~
+You may have heard cassette tapes 'fast-forwarded' in the past. This is usually the case even if the video is played at full speed. There are times when a man's voice sounds as thin as the speed of speed increases, making it sound like a woman's voice. This is a change in pitch as speed changes. 
 
-주어진 음원의 속도를 변화시키는 방법은 크게 두 가지로 나눌 수 있다. 하나는 음정을 고정한 채 빠르기만 변화시키고, 다른 하나는 음정과 빠르기가 함께 변화하는 것이다.
+There are two main ways to change the speed of a given sound source. One is to change the speed with the pitch fixed, and the other is to change the pitch and speed together.
 
-pysox module의 [transformer documentation](https://pysox.readthedocs.io/en/latest/api.html) 을 참고하여 함수를 만들어 보자. 먼저 sox를 설치해준다.
+The [transformer documentation](https://pysox.readthedocs.io/en/latest/api.html) of pysox module will work this time. First we need to install `sox`.
 
 ~~~python
 ! apt-get install libsox-fmt-all
@@ -384,12 +385,12 @@ pysox module의 [transformer documentation](https://pysox.readthedocs.io/en/late
 ! pip install sox
 ~~~
 
-이후 두 가지 변환에 대한 함수를 각각 만들어준다. 중간에 주석으로 둔 부분(out을 정의하고 반환하는 부분)은 나중에 전체 목소리 변환기를 만들 때 다시 주석 해제해주면 된다.
+We then create functions for each of the two transformations. The part that is annotated in the middle (the part that defines and returns the `out`) can be unannotated again later when creating the entire voice converter.
 
 ~~~python
 import sox
 def speed_sox(audio, rate):
-  tfm = sox.Transformer() # 변환 모듈 선언
+  tfm = sox.Transformer() # transforming module
   tfm.speed(rate)
   # out = tfm.build_array(input_array=audio, sample_rate_in=sr)
   # return out
@@ -409,34 +410,34 @@ tempo_sox(audio, 0.8)
 tempo_sox(audio, 1.2)
 ~~~
 
-위와 같이 주어진 음원의 속도를 변화시키는 두개의 변환을 찾아 각각을 적용하는 함수를 작성할 수 있다.
+As above, two transformations that change the speed of a given sound source can be found and a function that applies each of them can be written.
 
 
 
 ### 9. Noise Control
 
-지금까지 우리는 주어진 음원의 음정, 빠르기를 변환하는 방법을 알아보았다. 이번에는 신호 자체를 넘어서 신호에 gaussian 노이즈를 더해보고자 한다. 이는 향후 응용하고자 하는 task별로 상이할 수 있지만, 모델을 보다 강인하게 만드는 augmentation 방법으로도 활용할 수 있다. noise는 np.random.normal을 활용하여 생성한다.
+So far, we have learned how to convert the pitch, speed of a given sound source. This time, we want to go beyond the signal itself and add Gaussian noise to the signal. This can vary by task to be applied in the future, but it can also be used as an augmentation method to make the model more robust. Noise is created using `np.random.normal`.
 
 ~~~python
 def add_noise(audio, rate):
-    noise = np.random.normal(0, 1, 155520) # size를 기존 음원과 동일하게 줘야함
+    noise = np.random.normal(0, 1, 155520) # size should be the same as existing sound source's
     return audio + rate*noise
 
 sf.write('speech_noise_0.01.wav', add_noise(audio, 0.01), sr)
 sf.write('speech_noise_0.1.wav', add_noise(audio, 0.1), sr)
 ~~~
 
-noise의 `mean` 과 `std`는 각각 0, 1로 설정하고, 정도를 조절할 수 있는 파라미터를 함께 입력받도록 하여 다양한 수준의 SNR 레벨을 가진 음원을 생성해볼 수 있다.
+The `mean` and `std` of noise are set to 0 and 1 respectively, and input parameters that can control the degree of noise can be used to generate sound sources with different levels of SNR.
 
 
 
 ### 10. Reverb Control
 
-8번까지 우리는 신호 자체를 변환하는 방법을 알아보았다. 9번에서는 신호에 노이즈를 더해주었다. 노이즈를 더해주었던 것과 유사하게, impulse reponse 를 적용해서 리버브를 걸어보는 연습을 해보고자 한다. 또한, reverb 도 augmentation 방법으로 활용할 수 있다.
+By #8, we had figured out how to convert the signal itself. #9, added noise to the signal. Similar to the noise added, we would like to practice using impulse response to walk the reverb. Also, reverse can be used as an augmentation method.
 
-자연에서 reverb가 생기는 과정은 원본 신호 이외에 공간 등에 반사된 신호가 시간차를 두고 마이크로 수음되어 더해지는 과정이라고 생각하면 된다. 그리고 이를 실험적으로 모델링하기 위해서는, 특정 공간에 대한 impulse response를 생성(혹은 취득)한 뒤, 해당 response를 원본 신호에 convolve 하는 방법을 사용할 수 있다. 이 때 impulse response는 해당 공간에서 impulse 를 발생시켰을 때 마이크로 수음되는 소리를 의미한다.
+The process of reversing in nature can be thought of as a process in which signals reflected in space, in addition to the original signals, are recorded and added through a microphone with a time difference. And to model this experimentally, you can create (or acquire) an impulse response to a particular space and then convert that response to the original signal. The impulse response is the sound received through the microphone when an impulse is generated in that space.
 
-주어진 impulse는 [reverb.wav](./reverb.wav)를 사용한다.
+Use [reverb.wav](./reverb.wav) as a given impulse.
 
 ~~~python
 import scipy
@@ -450,43 +451,43 @@ def apply_reverb(audio, reverb):
 sf.write('speech_reverb.wav', apply_reverb(audio, reverb), sr)
 ~~~
 
-핵심은 speech 신호에 **convolution** 연산을 적용하는 것이다. [scipy.signal.convolve](https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.convolve.html)를 참고해 보자. output을 들어보면 확실히 소리에 reverb가 반영된 것을 알 수 있다.
+The key is to apply the **convolution** operation to speech signals. Refer to [scipy.signal.convolve](https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.convolve.html). By listening to the output, you can definitely see that the sound contains the reverb.
 
 
 
 ### 11. Voice Converter
 
-지금까지 배웠던 내용을 하나의 함수로 작성해보는 과정이다. 입력 조건을 정리하면 다음과 같다.
+It is a process of coding what you have learned so far as a function. The input conditions are summarized as follows:
 
-- `pitch` : pitch를 몇 키 높일지/낮출지 결정하는 입력
-- `pitch_var` : pitch variance를 몇배로 늘릴지/줄일지 결정하는 입력
-- `tempo` : 몇배 빠르게/느리게 재생할지 결정하는 입력
-- `change` : 목소리를 변화시킬지 아닐지 결정하는 입력
-- `noise` : noise 를 얼마나 더할지 결정하는 입력
-- `reverb` : reverb 를 걸지 말지 결정하는 입력
+- `pitch` : How many keys the pitch should be raised/decreased
+- `pitch_var` : How many times the pitch variation should be increased/decreased
+- `tempo` : How fast/slow to play
+- `change` : Whether to change the voice(pitch) or not
+- `noise` : How much noise to add
+- `reverb` : Whether to apply reverb
 
 ~~~python
 def voice_changer(audio_path, pitch, pitch_var, tempo, change, noise, reverb):
     audio, sr = librosa.load(audio_path, sr=22050, dtype='float64')
     ir, sr = librosa.load('/content/00x00y.wav', sr = sr)
-    audio = std_change(audio, pitch_var) # 분산 조절
-    audio = key_change(audio, pitch) # 높낮이 조절
+    audio = std_change(audio, pitch_var) # variation control
+    audio = key_change(audio, pitch) # pitch control
     if change :
-        audio = speed_sox(audio, tempo) # 빠르기(pitch 포함) 조절
+        audio = speed_sox(audio, tempo) # tempo(with pitch) control
     else : 
-        audio = tempo_sox(audio, tempo) # 빠르기(pitch 제외) 조절
-    audio = add_noise(audio, noise) # noise 조절
+        audio = tempo_sox(audio, tempo) # tempo(without pitch) control
+    audio = add_noise(audio, noise) # noise control
     if reverb:
-        audio = apply_reverb(audio, ir) # reverb 조절
+        audio = apply_reverb(audio, ir) # reverb control
     return audio
 
 out = voice_changer('/content/speech.wav', 1.2, 0.5, 0.7, False, 0.01, False)
 sf.write('output.wav', out, sr)
 ~~~
 
-기본 sample rate를 44100으로 두고 했더니 변형이 제대로 되지 않아서 22050으로 바꾸었더니 동일한 사운드를 확인할 수 있었다. (but why?)
+I set the basic sample rate to 44100, but it didn't deform properly, so I changed it to 22050, and I could check the proper sound. (but why?)
 
-그리고 `speed_sox`와 `tempo_sox` 같은 경우 기존에 만들었던 함수는 파일을 생성하기만 하기 때문에 조금 수정하여 아래와 같이 return 값을 만들어주었다. 앞서 말했듯 out에 대한 주석만 해제하면 된다.
+And in the case of `speed_sox` and `tempo_sox`, the existing function only generates the file, so we modified it a little bit and made the return value as shown below. As said before, all we have to do is lift the comments on out.
 
 ```python
 import sox
@@ -494,7 +495,7 @@ import sox
 def speed_sox(audio, rate):
   tfm = sox.Transformer()
   tfm.speed(rate)
-  out = tfm.build_array(input_array=audio, sample_rate_in=sr) # build_file 대신 build_array를 사용하여 반환값 생성
+  out = tfm.build_array(input_array=audio, sample_rate_in=sr) # Create a return value using 'build_array' instead of 'build_file'
   return out
   # tfm.build_file(output_filepath= 'speech_speed_' + (str)(rate) + '.wav', input_array=audio, sample_rate_in=sr)
 
@@ -507,7 +508,7 @@ def tempo_sox(audio, rate):
   # tfm.build_file(output_filepath= 'speech_tempo_' + (str)(rate) + '.wav', input_array=audio, sample_rate_in=sr)
 ```
 
-마지막으로 음원에 효과를 더할 때마다 음원 자체의 size가 달라져서 noise 연산이 막히는 문제를 확인했다. 따라서 `np.random.normal` 내부 size 변수를 유동적으로 바꾸어 주었다.
+Lastly, every time I added an effect to the sound source, the size of the sound source itself changed and I checked the problem of clogging the noise operation. Therefore, the internal size variable of `np.random.normal` was changed fluidly.
 
 ```python
 def add_noise(audio, rate):
@@ -520,11 +521,11 @@ sf.write('speech_noise_0.1.wav', add_noise(audio, 0.1), sr)
 
 
 
-주어진 음원을 이루고 있는 다양한 인지적인 요소들에 대해 파악하고, 그것들 중 제어할 수 있는것에 대해 변형을 수행하는 모듈을 만들어보았다. 학습 과정에서 다룬 요소들을 제외하고도 언어적 특징, 음색, 더욱 복합적인 감정 및 비언어적 표현 등을 구현하는 다양한 정보들이 존재하며, 이는 조금 더 복잡하고 정교한 모델링을 통해 이해하고 제어할 수 있다고 한다.
+We have created a module that identifies the various cognitive elements that make up a given sound source and performs modifications on those that can be controlled. Apart from the elements covered in the process, there is a variety of information that implements linguistic features, tones, more complex emotions, and nonverbal representations, which can be understood and controlled through more complex and sophisticated modeling.
 
-학습을 진행하며 몇몇 문제의 경우 document를 참고하고도 풀리지 않거나, 왜 이렇게 되는 건지 알 수 없어서 한 문제에 며칠씩 매달린 경우도 있었지만, 결국 그렇게 어려운 것이 아니라 한 두 단계의 응용만 거치면 해결할 수 있는 것이었다. 
+In some cases, the problem was not solved by referring to the document, or hung on to the problem for a few days because I didn't know why. However it was not that difficult. It could be solved by just one or two levels of application and thinking. 
 
-결국 FutureSkill 플랫폼 사용자 전체 중 본 컨텐츠를 최초로 완주할 수 있었다. 이전부터 오디오 프로세싱에 관심이 많았지만 어떻게 접근해야할지 몰랐는데 문제를 하나씩 풀어가며 다양한 documents를 참고하는 과정에서 많은 것을 배웠다. 정말 좋은 경험이었다. 소중한 컨텐츠 제공해주신 이주헌 크리에이터님께 감사의 말씀 꼭 전해드리고 싶다.
+Eventually, I was the first and only one who could complete this content among FutureSkill platform users. I was interested in audio processing before, but I didn't know how to approach it, but I learned a lot in the process of solving problems one by one and referring to various documents. It was a great experience. I want to say thank you to creator Lee Ju-heon for providing precious contents.
 
 
 
@@ -534,8 +535,8 @@ sf.write('speech_noise_0.1.wav', add_noise(audio, 0.1), sr)
 
 #### Reference
 
-- [Future Skill](https://futureskill.io/)
+- [Future Skill](https://futureskill.io/) , Creator Lee Ju-heon
 
 #### Editor
 
-- [**Colab**](https://colab.research.google.com/) / PyCharm
+- [Colab](https://colab.research.google.com/)

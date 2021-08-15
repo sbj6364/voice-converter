@@ -532,8 +532,8 @@ sf.write('speech_noise_0.1.wav', add_noise(audio, 0.1), sr)
 
 #### Reference
 
-- [Future Skill](https://futureskill.io/)
+- [Future Skill](https://futureskill.io/), 이주헌 크리에이터
 
 #### Editor
 
-- [**Colab**](https://colab.research.google.com/) / PyCharm
+- [Colab](https://colab.research.google.com/)
